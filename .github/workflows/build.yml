@@ -1,14 +1,14 @@
-name: Build Bettercap
+name: Go Build and Upload
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -17,13 +17,15 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.22'
 
-      - name: Build Bettercap
-        run: go build -tags "nousb" -o bettercap.exe
+      - name: Build project
+        run: |
+          go mod tidy
+          go build -o myapp.exe .
 
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bettercap-windows
-          path: bettercap.exe
+          name: myapp-artifact
+          path: myapp.exe
