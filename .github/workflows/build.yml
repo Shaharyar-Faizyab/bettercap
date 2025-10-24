@@ -14,14 +14,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
+            pkg-config \
             libpcap-dev \
             libusb-1.0-0-dev \
-            pkg-config
+            libpcap0.8-dev \
+            libusb-dev
+
+          # Debug info — show installed libs
+          echo "==== pkg-config debug ===="
+          pkg-config --list-all | grep usb || true
+          pkg-config --list-all | grep pcap || true
+          echo "==== Files check ===="
+          ls -l /usr/include/pcap* || true
+          ls -l /usr/include/libusb* || true
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -29,11 +39,14 @@ jobs:
           go-version: '1.22'
 
       - name: Build project
+        env:
+          CGO_ENABLED: 1
+          PKG_CONFIG_PATH: /usr/lib/x86_64-linux-gnu/pkgconfig
         run: |
           go mod tidy
-          go build -o myapp.exe .
+          go build -x -v -o myapp.exe .
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: myapp-artifact
